@@ -68,7 +68,7 @@ connect to your ghuc instance.
 Usage: ghuc-private [options]
 
 Options:
-  --balance       Auto-mine until this initial Ether balance is achieved (default: 0)
+  --balance       Auto-mine until this initial Hucer balance is achieved (default: 0)
   --autoMine     Auto-mine indefinitely (overrides --balance option)
   --ghucPath      Path to ghuc executable to use instead of default
   --genesisBlock  Genesis block overrides as a JSON string
@@ -214,7 +214,7 @@ $ ghuc-private --genesisBlock '{"difficulty":"0x10000000"}'
 ```
 
 _NOTE: the `--balance` option will make ghuc-private automatically mine until
-the given Ether balance is achieved._
+the given Hucer balance is achieved._
 
 
 ## Logging capture

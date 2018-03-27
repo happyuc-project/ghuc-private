@@ -3,7 +3,7 @@ dist: trusty
 
 cache:
   directories:
-    - ~/.ethash
+    - ~/.huchash
 
 language: node_js
 
@@ -16,7 +16,7 @@ before_install:
   - sudo apt-get install -y ghuc
   - mkdir -p ~/.happyuc
   - mkdir -p ~/.huchash
-  - geth makedag 0 ~/.huchash
+  - ghuc makedag 0 ~/.huchash
 
 script:
   - "npm test"

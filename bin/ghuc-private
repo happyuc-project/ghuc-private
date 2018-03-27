@@ -12,7 +12,7 @@ const packageJson = require('../package.json');
 // CLI options
 const argv = yargs.usage('Usage: $0 [options]').
   describe('balance',
-    'Auto-mine until this initial Ether balance is achieved (default: 0)').
+    'Auto-mine until this initial Hucer balance is achieved (default: 0)').
   describe('autoMine', 'Auto-mine indefinitely (overrides --balance option)').
   describe('ghucPath', 'Path to ghuc executable to use instead of default').
   describe('genesisBlock', 'Genesis block overrides as a JSON string').
@@ -61,7 +61,7 @@ inst.start().then(function() {
   console.log(chalk.yellow(`Ghuc is now running (pid: ${inst.pid}).\n`));
   console.log(chalk.yellow(`Data folder:\t${inst.dataDir}`));
   console.log(chalk.yellow(`Genesis file:\t${inst.genesisFile}`));
-  console.log(chalk.yellow(`\nEtherbase:\t${inst.account}`));
+  console.log(chalk.yellow(`\nHucerbase:\t${inst.account}`));
   console.log(
     chalk.yellow(`\nIPC:\tghuc attach ipc://${inst.dataDir}/ghuc.ipc`));
 }).catch(function(err) {
