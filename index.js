@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var path = require('path'),
   chalk = require('chalk'),
@@ -9,19 +9,18 @@ var path = require('path'),
   shell = require('shelljs'),
   which = require('which');
 
-
-class Geth {
+class Ghuc {
   constructor(options) {
     options = options || {};
 
-    // options for geth
-    this._gethOptions = Object.assign({
+    // options for ghuc
+    this._ghucOptions = Object.assign({
       networkid: 33333,
       port: 60303,
       rpc: true,
       rpcport: 8545,
-      rpccorsdomain: "*",
-      rpcapi: "admin,db,eth,debug,miner,net,shh,txpool,personal,web3",
+      rpccorsdomain: '*',
+      rpcapi: 'admin,db,huc,debug,miner,net,shh,txpool,personal,webu',
       maxpeers: 0,
       nodiscover: true,
       // reduce overhead
@@ -30,21 +29,21 @@ class Geth {
       cache: 16,
       // logging
       // verbosity: 6,
-    }, options.gethOptions, {
+    }, options.ghucOptions, {
       rpc: true,
     });
 
-    // path to geth
-    this._geth = options.gethPath;
+    // path to ghuc
+    this._ghuc = options.ghucPath;
 
     // genesis options
     this._genesisOptions = options.genesisBlock || null;
 
-    if (!this._geth) {
+    if (!this._ghuc) {
       try {
-        this._geth = which.sync('geth');
+        this._ghuc = which.sync('ghuc');
       } catch (err) {
-        throw new Error('Unable to find "geth" executable in PATH');
+        throw new Error('Unable to find "ghuc" executable in PATH');
       }
     }
 
@@ -66,21 +65,18 @@ class Geth {
 
     this._log(`Starting...`);
 
-    return this._createDataDir()
-      .then(() => this._setupAccountInfo())
-      .then(() => this._startGeth())
-      .then((ret) => {
+    return this._createDataDir().
+      then(() => this._setupAccountInfo()).
+      then(() => this._startGhuc()).
+      then((ret) => {
         this._proc = ret.proc;
       });
-    ;
   }
-
-
 
   stop(options) {
     return Q.try(() => {
       if (!this._proc) {
-        throw new Error("Not started");
+        throw new Error('Not started');
       }
 
       options = Object.assign({
@@ -96,7 +92,7 @@ class Geth {
           if (this._tmpDataDir) {
             this._log(`Destroying data...`);
 
-            shell.rm('-rf', this._gethOptions.datadir);
+            shell.rm('-rf', this._ghucOptions.datadir);
           }
 
           resolve({
@@ -113,57 +109,58 @@ class Geth {
   }
 
   /**
-   * Execute a command in the JS console of the running geth instance.
+   * Execute a command in the JS console of the running ghuc instance.
    * @param  {String} jsCommand
    * @return {Promise}
    */
-  consoleExec (jsCommand) {
+  consoleExec(jsCommand) {
     return Q.try(() => {
       if (!this._proc) {
-        throw new Error("Not started");
+        throw new Error('Not started');
       }
 
       this._log(`Execute in console: ${jsCommand}`);
 
       return this._exec(
-        this._buildGethCommandLine({
-          command: ['--exec', `"${jsCommand}"`, 'attach',
-            this._formatPathForCli(`ipc://${this.dataDir}/geth.ipc`)
-          ]
-        })
+        this._buildGhucCommandLine({
+          command: [
+            '--exec', `"${jsCommand}"`, 'attach',
+            this._formatPathForCli(`ipc://${this.dataDir}/ghuc.ipc`),
+          ],
+        }),
       ).then((ret) => {
         return ret.stdout;
       });
     });
   }
 
-  get httpRpcEndpoint () {
-    return `http://localhost:${this._gethOptions.rpcport}`;
+  get httpRpcEndpoint() {
+    return `http://localhost:${this._ghucOptions.rpcport}`;
   }
 
-  get account () {
+  get account() {
     return this._account;
   }
 
-  get dataDir () {
-    return this._gethOptions.datadir;
+  get dataDir() {
+    return this._ghucOptions.datadir;
   }
 
-  get genesisFile () {
+  get genesisFile() {
     return this._genesisFilePath;
   }
 
-  get isRunning () {
+  get isRunning() {
     return !!this._proc;
   }
 
-  get pid () {
+  get pid() {
     return this._proc.pid;
   }
 
-  _createDataDir () {
+  _createDataDir() {
     return Q.try(() => {
-      let options = this._gethOptions;
+      let options = this._ghucOptions;
 
       // need to create temporary data dir?
       if (!options.datadir) {
@@ -186,10 +183,10 @@ class Geth {
     });
   }
 
-
-  _setupAccountInfo () {
+  _setupAccountInfo() {
     return Q.try(() => {
-      this._genesisFilePath = path.join(this._gethOptions.datadir, 'genesis.json');
+      this._genesisFilePath = path.join(this._ghucOptions.datadir,
+        'genesis.json');
 
       this._log(`Genesis file: ${this._genesisFilePath}`);
 
@@ -204,20 +201,22 @@ class Geth {
         this._log(`Creating genesis chain data...`);
 
         return this._exec(
-          this._buildGethCommandLine({
-            command: ['init', this._formatPathForCli(this._genesisFilePath)]
-          })
+          this._buildGhucCommandLine({
+            command: ['init', this._formatPathForCli(this._genesisFilePath)],
+          }),
         )
-          // start geth and create an account
+        // start ghuc and create an account
           .then((ret) => {
             this._log(`Creating account...`);
 
             return this._exec(
-              this._buildGethCommandLine({
-                command: ['js',
-                  this._formatPathForCli(path.join(__dirname, 'data', 'setup.js'))
+              this._buildGhucCommandLine({
+                command: [
+                  'js',
+                  this._formatPathForCli(
+                    path.join(__dirname, 'data', 'setup.js')),
                 ],
-              })
+              }),
             );
           })
           // load account info
@@ -228,16 +227,15 @@ class Geth {
     });
   }
 
-
-  _loadAccountInfo () {
+  _loadAccountInfo() {
     return Q.try(() => {
       this._log(`Loading account info...`);
 
-      // fetch account info from geth
+      // fetch account info from ghuc
       return this._exec(
-        this._buildGethCommandLine({
-          command: ['account', 'list']
-        })
+        this._buildGhucCommandLine({
+          command: ['account', 'list'],
+        }),
       ).then((ret) => {
         let str = ret.stdout;
 
@@ -254,34 +252,32 @@ class Geth {
     });
   }
 
-
-  _buildGenesisString () {
+  _buildGenesisString() {
     return JSON.stringify(Object.assign({
-      "config": {
-        "chainId": 1337,
-        "homesteadBlock": 0,
-        "eip150Block": 0,
-        "eip155Block": 0,
-        "eip158Block": 0,
+      'config': {
+        'chainId': 1337,
+        'homesteadBlock': 0,
+        'eip150Block': 0,
+        'eip155Block': 0,
+        'eip158Block': 0,
       },
-      "difficulty": "0xf0000",
-      "gasLimit": "0x8000000",
-      "alloc": {}
+      'difficulty': '0xf0000',
+      'gasLimit': '0x8000000',
+      'alloc': {},
     }, this._genesisOptions), null, 2);
   }
 
-
-  _runMiningLoop () {
+  _runMiningLoop() {
     setTimeout(() => {
       if (!this._proc) {
         return;
       }
 
       Q.all([
-        this.consoleExec(`web3.fromWei(eth.getBalance('${this._account}'), 'ether')`),
-        this.consoleExec(`eth.mining`),
-      ])
-      .spread((balance, isMining) => {
+        this.consoleExec(
+          `webu.fromWei(huc.getBalance('${this._account}'), 'hucer')`),
+        this.consoleExec(`huc.mining`),
+      ]).spread((balance, isMining) => {
         balance = parseFloat(balance.trim());
         isMining = ('true' === isMining.trim());
 
@@ -289,18 +285,19 @@ class Geth {
 
         return Q.try(() => {
           if (this._autoMine) {
-            return;
+
           } else if (this._initialBalance) {
             if (balance < this._initialBalance) {
-              this._log(`Account balance (${balance}) is < target (${this._initialBalance}).`);
+              this._log(
+                `Account balance (${balance}) is < target (${this._initialBalance}).`);
             } else {
-              this._log(`Account balance (${balance}) is >= target (${this._initialBalance}).`);
+              this._log(
+                `Account balance (${balance}) is >= target (${this._initialBalance}).`);
 
               keepGoing = false;
             }
           }
-        })
-        .then(() => {
+        }).then(() => {
           if (keepGoing) {
             return Q.try(() => {
               if (!isMining) {
@@ -308,8 +305,7 @@ class Geth {
 
                 return this.consoleExec('miner.start()');
               }
-            })
-            .then(() => this._runMiningLoop());
+            }).then(() => this._runMiningLoop());
           } else {
             if (isMining) {
               this._log(`Stop mining...`);
@@ -318,79 +314,74 @@ class Geth {
             }
           }
         });
-      })
-      .catch((err) => {
+      }).catch((err) => {
         this._logError('Error fetching account balance', err);
       });
     }, 500);
   }
 
-
-  _buildGethCommandLine(opts) {
+  _buildGhucCommandLine(opts) {
     opts = Object.assign({
       command: [],
-      quoteStrings: true
+      quoteStrings: true,
     }, opts);
 
-    let gethOptions = this._gethOptions;
+    let ghucOptions = this._ghucOptions;
 
     let str = [];
-    for (let key in gethOptions) {
-      let val = gethOptions[key];
+    for (let key in ghucOptions) {
+      let val = ghucOptions[key];
 
       if (null !== val && false !== val) {
         str.push(`--${key}`);
 
-        if (typeof val === "string") {
+        if (typeof val === 'string') {
           if ('datadir' === key) {
             val = this._formatPathForCli(val);
           } else {
             val = opts.quoteStrings ? `"${val}"` : val;
           }
           str.push(val);
-        } else if (typeof val !== "boolean") {
+        } else if (typeof val !== 'boolean') {
           str.push(`${val}`);
         }
       }
     }
 
-    // add etherbase param
+    // add hucerbase param
     if (this.account) {
-      str.push(`--etherbase`);
+      str.push(`--hucerbase`);
       str.push(this.account);
     }
 
-    return [this._geth].concat(str, opts.command);
+    return [this._ghuc].concat(str, opts.command);
   }
-
 
   /**
    * @return {Promise}
    */
-  _startGeth() {
-    const gethcli = this._buildGethCommandLine({
+  _startGhuc() {
+    const ghuccli = this._buildGhucCommandLine({
       quoteStrings: false,
     });
 
-    return this._exec(gethcli, {
-      longRunning: true
-    })
-      .then((ret) => {
-        if (this._initialBalance || this._autoMine) {
-          this._log(`Auto-start mining...`);
+    return this._exec(ghuccli, {
+      longRunning: true,
+    }).then((ret) => {
+      if (this._initialBalance || this._autoMine) {
+        this._log(`Auto-start mining...`);
 
-          this._runMiningLoop();
-        }
+        this._runMiningLoop();
+      }
 
-        return ret;
-      });
+      return ret;
+    });
   }
-
 
   /**
    * @return {Promise}
    */
-  _exec (cli, options) {
+  _exec(cli, options) {
     options = Object.assign({
       longRunning: false,
     }, options);
@@ -402,7 +393,7 @@ class Geth {
 
         const cmdStr = cli.join(' ');
 
-        this._log(`Executing geth command:  ${cmdStr}`);
+        this._log(`Executing ghuc command:  ${cmdStr}`);
 
         child_process.exec(cmdStr, (err, stdout, stderr) => {
           if (err) {
@@ -423,15 +414,15 @@ class Geth {
     // start a node instance
     else {
       return new Q((resolve, reject) => {
-        this._log(`Starting geth process: ${cli.join(' ')}`);
+        this._log(`Starting ghuc process: ${cli.join(' ')}`);
 
         let isRunning = false,
-        successTimer = null;
+          successTimer = null;
 
-        const proc = child_process.spawn(cli[0], cli.slice(1),{
+        const proc = child_process.spawn(cli[0], cli.slice(1), {
           detached: false,
           shell: false,
-          stdio:['ignore', 'pipe', 'pipe'],
+          stdio: ['ignore', 'pipe', 'pipe'],
         });
 
         const ret = {
@@ -485,8 +476,7 @@ class Geth {
     }
   }
 
-
-  _log () {
+  _log() {
     if (this._verbose) {
       let args = Array.prototype.map.call(arguments, (a) => {
         return chalk.cyan(a);
@@ -496,15 +486,13 @@ class Geth {
     }
   }
 
-
-  _logNode (str) {
+  _logNode(str) {
     if (this._verbose) {
       this._logger.info(str.trim());
     }
   }
 
-
-  _logError () {
+  _logError() {
     if (this._verbose) {
       let args = Array.prototype.map.call(arguments, (a) => {
         return chalk.red(a + '');
@@ -514,13 +502,11 @@ class Geth {
     }
   }
 
-
-  _formatPathForCli (pathStr) {
+  _formatPathForCli(pathStr) {
     return (0 <= pathStr.indexOf(' ')) ? `"${pathStr}"` : pathStr;
   }
 }
 
-
 module.exports = function(options) {
-  return new Geth(options);
+  return new Ghuc(options);
 };
