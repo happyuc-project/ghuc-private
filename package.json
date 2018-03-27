@@ -1,6 +1,6 @@
 {
   "name": "ghuc-private",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Quickly setup a local, private Happyuc blockchain.",
   "main": "index.js",
   "bin": {

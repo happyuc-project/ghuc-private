@@ -29,7 +29,7 @@ module.exports = {
       }
     }).asCallback(done);
   },
-  'can stop geth': function(done) {
+  'can stop ghuc': function(done) {
     this.inst.stop().then((ret) => {
       expect(ret.signal === 'SIGTERM' || ret.signal === null).to.be.true;
 
