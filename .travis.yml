@@ -4,19 +4,19 @@ dist: trusty
 cache:
   directories:
     - ~/.ethash
-  
+
 language: node_js
 
 node_js:
   - "6"
 
 before_install:
-  - sudo add-apt-repository -y ppa:ethereum/ethereum
+  - sudo add-apt-repository -y ppa:happyuc-project/happyuc
   - sudo apt-get update
-  - sudo apt-get install -y geth
-  - mkdir -p ~/.ethereum
-  - mkdir -p ~/.ethash
-  - geth makedag 0 ~/.ethash
+  - sudo apt-get install -y ghuc
+  - mkdir -p ~/.happyuc
+  - mkdir -p ~/.huchash
+  - geth makedag 0 ~/.huchash
 
 script:
   - "npm test"
